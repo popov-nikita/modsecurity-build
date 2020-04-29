@@ -2,6 +2,8 @@ FROM ubuntu:bionic
 
 RUN apt-get update --yes
 RUN apt-get install --yes --no-install-recommends \
+                                                  mime-support
+RUN apt-get install --yes --no-install-recommends \
                                                   xz-utils \
                                                   make \
                                                   gcc \
