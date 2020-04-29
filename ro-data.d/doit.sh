@@ -1,5 +1,7 @@
 #!/bin/sh
 
+exec "/bin/sh"
+
 set -x
 set -u -e
 
