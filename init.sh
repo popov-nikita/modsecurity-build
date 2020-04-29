@@ -7,30 +7,9 @@ cd "$(dirname "$0")"
 HOST_RO_DIR="$(realpath "ro-data.d")"
 HOST_RW_DIR="$(realpath "rw-data.d")"
 
-_GET_ENV="$(cat<<'EOF'
-BEGIN {
-	FS = " ";
-}
-
-($1 == "ENV") && (NF == 3) {
-	all_vars[$2] = $3;
-}
-
-END {
-	readonly_printed = 0;
-	for (var in all_vars) {
-		if (!readonly_printed) {
-			printf "readonly";
-			readonly_printed = 1;
-		}
-		printf " %s=%s", var, all_vars[var];
-	}
-	printf "\n";
-}
-EOF
-)";
-
-eval "$(awk "${_GET_ENV}" Dockerfile)"
+# Extract ENV variables defined in Dockerfile, mark them as readonly
+_ENV_REGEX='^[[:space:]]*ENV[[:space:]]+([_a-zA-Z][_a-zA-Z0-9]*)[[:space:]]+(.+)$'
+eval "$(sed -n -E -e "s@${_ENV_REGEX}@readonly \1=\2@p" Dockerfile)"
 
 SHOULD_PRUNE="0"
 
