@@ -2,7 +2,8 @@ FROM ubuntu:bionic
 
 RUN apt-get update --yes
 RUN apt-get install --yes --no-install-recommends \
-                                                  mime-support
+                                                  mime-support \
+                                                  adduser
 RUN apt-get install --yes --no-install-recommends \
                                                   xz-utils \
                                                   make \
@@ -35,21 +36,45 @@ RUN apt-get install --yes --no-install-recommends \
                                                   libfuzzy2 \
                                                   libfuzzy-dev
 
-ENV IMAGE_NAME modsecurity-build
-ENV DOCKER_RO_DIR /src.d
-ENV DOCKER_RW_DIR /dst.d
+ENV IMAGE_NAME web-protection-env
+ENV DOCKER_RO_DIR /sources
+ENV DOCKER_RW_DIR /www
 
-ENV APACHE_BUILD_DIR /httpd
+ENV APACHE_BUILD_DIR /httpd-build
 ENV APACHE_TARGZ httpd-2.4.41.tar.gz
 ENV APACHE_APR_TARGZ apr-1.7.0.tar.gz
 ENV APACHE_APR_UTIL_TARGZ apr-util-1.6.1.tar.gz
-ENV MODSECURITY_BUILD_DIR /modsecurity
+ENV MODSECURITY_BUILD_DIR /modsecurity-build
 ENV MODSECURITY_TARGZ modsecurity-2.9.3.tar.gz
+
+ENV CONFIG_TEMPLATE ${DOCKER_RO_DIR}/modsecurity-aware.conf.tpl
+
+# APACHE config files parameters. These are substituted in .conf.tpl file
+ENV SERVER_NAME http://web-protection-env.local:80
+ENV SERVER_ROOT ${DOCKER_RW_DIR}
+ENV SERVER_PID_FILE httpd.pid
+ENV SERVER_USER www-user
+ENV SERVER_GROUP www-user
+# It's important to keep DOCROOT absolute, since it is used in <directory> section
+ENV SERVER_DOCROOT ${SERVER_ROOT}/docs
+ENV SERVER_ERROR_LOG errors.log
+ENV SERVER_ACCESS_LOG accesses.log
 
 VOLUME ${DOCKER_RO_DIR}
 VOLUME ${DOCKER_RW_DIR}
 
 WORKDIR /
+
+RUN addgroup --quiet  \
+             --system \
+             "${SERVER_GROUP}"
+RUN adduser  --quiet                     \
+             --shell "/usr/sbin/nologin" \
+             --no-create-home            \
+             --system                    \
+             --ingroup "${SERVER_GROUP}" \
+             --home "${SERVER_ROOT}"     \
+             "${SERVER_USER}"
 
 RUN mkdir ${APACHE_BUILD_DIR}
 COPY ${APACHE_TARGZ} ${APACHE_BUILD_DIR}
@@ -69,6 +94,13 @@ RUN { \
                         --enable-pie \
                         --enable-mods-static="reallyall" \
                         --with-mpm=prefork \
+                        --disable-cgid \
+                        --disable-example-hooks \
+                        --disable-example-ipc \
+                        --disable-optional-hook-export \
+                        --disable-optional-hook-import \
+                        --disable-optional-fn-import \
+                        --disable-optional-fn-export \
                         --with-crypto; \
             nr_cpus="$(grep -c '^processor' /proc/cpuinfo)"; \
             if test "$nr_cpus" -gt "1"; then \
