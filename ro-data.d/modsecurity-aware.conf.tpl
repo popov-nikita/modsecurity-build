@@ -59,3 +59,7 @@ LogLevel debug
 <IfModule mime_module>
     TypesConfig /etc/mime.types
 </IfModule>
+
+<IfModule security2_module>
+    IncludeOptional ++MODSECURITY_CONFIG++
+</IfModule>

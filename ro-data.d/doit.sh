@@ -15,10 +15,8 @@ cd "${SERVER_ROOT}"
 find "." -mindepth 1 -maxdepth 1 -exec 'rm' '-r' '{}' \;
 
 # Install docroot
-saved_umask="$(umask)"
 umask 0000
 mkdir -p -m 777 "${SERVER_DOCROOT}"
-umask "$saved_umask"
 
 PROCESS_PARAMS="$(cat<<'EOF'
 
