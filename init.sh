@@ -44,12 +44,12 @@ if test "$IS_INTERACTIVE" -eq "1"; then
 	       -i -t                                                                                    \
 	       --mount type=bind,src="$HOST_RO_DIR",dst="$DOCKER_RO_DIR",ro=true,bind-nonrecursive=true \
 	       --mount type=bind,src="$HOST_RW_DIR",dst="$DOCKER_RW_DIR",bind-nonrecursive=true         \
-	       -h "${IMAGE_NAME}.local" "$IMAGE_NAME"
+	       -h "$HOST_NAME" "$IMAGE_NAME"
 else
 	docker run                                                                                      \
 	       --mount type=bind,src="$HOST_RO_DIR",dst="$DOCKER_RO_DIR",ro=true,bind-nonrecursive=true \
 	       --mount type=bind,src="$HOST_RW_DIR",dst="$DOCKER_RW_DIR",bind-nonrecursive=true         \
-	       -h "${IMAGE_NAME}.local" "$IMAGE_NAME"
+	       -h "$HOST_NAME" "$IMAGE_NAME"
 fi
 
 exit 0

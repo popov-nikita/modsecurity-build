@@ -1,5 +1,7 @@
 FROM ubuntu:bionic
 
+MAINTAINER Nikita Popov <npv1310_at_gmail.com>
+
 RUN apt-get update --yes
 RUN apt-get install --yes --no-install-recommends \
                                                   mime-support \
@@ -37,6 +39,7 @@ RUN apt-get install --yes --no-install-recommends \
                                                   libfuzzy-dev
 
 ENV IMAGE_NAME web-protection-env
+ENV HOST_NAME ${IMAGE_NAME}.local
 ENV DOCKER_RO_DIR /sources
 ENV DOCKER_RW_DIR /www
 
@@ -50,7 +53,7 @@ ENV MODSECURITY_TARGZ modsecurity-2.9.3.tar.gz
 ENV CONFIG_TEMPLATE ${DOCKER_RO_DIR}/modsecurity-aware.conf.tpl
 
 # APACHE config files parameters. These are substituted in .conf.tpl file
-ENV SERVER_NAME http://web-protection-env.local:80
+ENV SERVER_NAME http://${HOST_NAME}:80
 ENV SERVER_ROOT ${DOCKER_RW_DIR}
 ENV SERVER_PID_FILE httpd.pid
 ENV SERVER_USER www-user
@@ -136,5 +139,7 @@ RUN { \
             make "-j${nr_threads}"; \
             make install; \
     }
+
+EXPOSE 80
 
 ENTRYPOINT ${DOCKER_RO_DIR}/doit.sh
